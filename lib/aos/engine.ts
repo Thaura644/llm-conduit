@@ -58,9 +58,19 @@ export class ConduitEngine {
             const raw = fs.readFileSync(orgfilePath, 'utf-8');
             const config = yaml.parse(raw);
 
-            if (config.team_roles) {
-                for (const role of config.team_roles) {
-                    this.db.saveRole(role);
+            // Support both 'team_roles' and 'team' keys
+            const teamRoles = config.team_roles || config.team;
+            if (teamRoles) {
+                // Handle both array format and object format
+                if (Array.isArray(teamRoles)) {
+                    for (const role of teamRoles) {
+                        this.db.saveRole(role);
+                    }
+                } else {
+                    // Object format: { CEO: {...}, CTO: {...} }
+                    for (const [roleName, roleData] of Object.entries(teamRoles)) {
+                        this.db.saveRole({ role: roleName, ...roleData as any });
+                    }
                 }
             }
 

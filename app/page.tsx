@@ -95,14 +95,28 @@ export default function LLMConduitDashboard() {
     setStreamingChunks(accumulated);
   }, [events]);
 
-  const timeline = events.filter(e => [
+  // Group streaming chunks and filter timeline
+  const streamingChunkIds = new Set(events.filter(e => e.type === 'agent.message.chunk' || e.type === 'chairman.thinking').map((e: any) => e.chunk_id));
+
+  // Create synthetic streaming message events (one per chunk_id)
+  const streamingMessages = Array.from(streamingChunkIds).map(chunkId => {
+    const chunks = events.filter((e: any) => (e.type === 'agent.message.chunk' || e.type === 'chairman.thinking') && e.chunk_id === chunkId);
+    const firstChunk = chunks[0] as any;
+    return {
+      ...firstChunk,
+      type: firstChunk.type === 'agent.message.chunk' ? 'agent.streaming' : 'chairman.streaming',
+      content: streamingChunks[chunkId] || '',
+      isStreaming: true
+    };
+  });
+
+  const timeline = [...events.filter(e => [
     'goal.submitted', 'agent.proposed', 'decision.made', 'human.feedback',
     'action.executed', 'chairman.window_opened',
-    'chairman.verdict_issued', 'permission.requested', 'agent.message',
-    'agent.message.chunk', 'chairman.thinking'
+    'chairman.verdict_issued', 'permission.requested', 'agent.message'
   ].includes(e.type) && (
       activeSessionId ? (e.run_id === activeSessionId) : (e.run_id?.startsWith('optimistic-new'))
-    )).sort((a: any, b: any) => (a.timestamp || 0) - (b.timestamp || 0));
+    )), ...streamingMessages].sort((a: any, b: any) => (a.timestamp || 0) - (b.timestamp || 0));
 
   const selectedEvent = events.find(e =>
     (e.type === 'agent.proposed' && e.proposal_id === selectedProposalId) ||
@@ -290,9 +304,9 @@ export default function LLMConduitDashboard() {
                                     <div className="italic opacity-80">"{item.reasoning.summary}"</div>
                                   </div>
                                 ) :
-                                  item.type === 'agent.message.chunk' || item.type === 'chairman.thinking' ? (
+                                  item.type === 'agent.streaming' || item.type === 'chairman.streaming' ? (
                                     <div className="text-slate-300 font-mono text-sm whitespace-pre-wrap">
-                                      {streamingChunks[item.chunk_id] || item.content}
+                                      {item.content}
                                       <span className="inline-block w-2 h-4 bg-indigo-500 ml-1 animate-pulse" />
                                     </div>
                                   ) :
