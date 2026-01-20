@@ -42,6 +42,8 @@ export class Agent {
     async propose(goal: string, context: string, knowledge: string, logFn: (event: any) => void): Promise<void> {
         try {
             console.log(`[${this.config.role}] Starting proposal for goal:`, goal.slice(0, 50));
+
+            const chunkId = `chunk-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
             logFn({
                 type: 'agent.message',
                 actor: { kind: 'agent', role: this.config.role },
@@ -58,20 +60,37 @@ export class Agent {
     }`;
 
             console.log(`[${this.config.role}] Calling API with model:`, this.config.model);
-            const response = await this.openai.chat.completions.create({
+            const stream = await this.openai.chat.completions.create({
                 model: this.config.model,
                 messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: `The current goal is: ${goal}\n\nContext: ${context}` },
                 ],
                 response_format: { type: 'json_object' },
+                stream: true,
             });
 
-            console.log(`[${this.config.role}] Received API response`);
-            const content = response.choices[0].message.content;
-            if (content) {
+            let fullContent = '';
+            console.log(`[${this.config.role}] Streaming response...`);
+
+            for await (const chunk of stream) {
+                const content = chunk.choices[0]?.delta?.content || '';
+                if (content) {
+                    fullContent += content;
+                    logFn({
+                        type: 'agent.message.chunk',
+                        actor: { kind: 'agent', role: this.config.role },
+                        content,
+                        chunk_id: chunkId,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+
+            console.log(`[${this.config.role}] Stream complete, parsing proposal`);
+            if (fullContent) {
                 try {
-                    const cleanContent = content.match(/\{[\s\S]*\}/)?.[0] || content;
+                    const cleanContent = fullContent.match(/\{[\s\S]*\}/)?.[0] || fullContent;
                     const proposal = JSON.parse(cleanContent);
                     console.log(`[${this.config.role}] Parsed proposal successfully`);
                     logFn({
@@ -81,11 +100,11 @@ export class Agent {
                         ...proposal,
                     });
                 } catch (e) {
-                    console.error(`[${this.config.role}] Failed to parse agent proposal:`, e, content);
+                    console.error(`[${this.config.role}] Failed to parse agent proposal:`, e, fullContent);
                     logFn({
                         type: 'agent.message',
                         actor: { kind: 'agent', role: this.config.role },
-                        content: `Internal Error: Failed to generate structured proposal. Raw response: ${content}`,
+                        content: `Internal Error: Failed to generate structured proposal. Raw response: ${fullContent}`,
                     });
                 }
             } else {

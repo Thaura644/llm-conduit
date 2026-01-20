@@ -63,20 +63,37 @@ You must respond with a JSON verdict following this format:
         const prompt = `Current Context: ${JSON.stringify(context.slice(-10))}
 Proposals to Arbitrate: ${JSON.stringify(proposals)}`;
 
-        const response = await this.openai.chat.completions.create({
+        const chunkId = `chairman-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        const stream = await this.openai.chat.completions.create({
             model: this.model,
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: prompt }
             ],
-            response_format: { type: 'json_object' }
+            response_format: { type: 'json_object' },
+            stream: true,
         });
 
-        const content = response.choices[0].message.content;
-        if (!content) throw new Error('Chairman failed to respond');
+        let fullContent = '';
+        for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || '';
+            if (content) {
+                fullContent += content;
+                this.logger.log({
+                    type: 'chairman.thinking',
+                    actor: { kind: 'system' },
+                    content,
+                    chunk_id: chunkId,
+                    timestamp: Date.now(),
+                    run_id: runId
+                });
+            }
+        }
+
+        if (!fullContent) throw new Error('Chairman failed to respond');
 
         try {
-            const cleanContent = content.match(/\{[\s\S]*\}/)?.[0] || content;
+            const cleanContent = fullContent.match(/\{[\s\S]*\}/)?.[0] || fullContent;
             const verdictData = JSON.parse(cleanContent);
 
             return {
@@ -85,7 +102,7 @@ Proposals to Arbitrate: ${JSON.stringify(proposals)}`;
                 ...verdictData
             } as ChairmanVerdictIssuedEvent;
         } catch (e) {
-            console.error('Failed to parse Chairman verdict:', e, content);
+            console.error('Failed to parse Chairman verdict:', e, fullContent);
             throw new Error('Failed to parse Chairman verdict');
         }
     }

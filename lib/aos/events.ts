@@ -66,6 +66,18 @@ export interface ChairmanVerdictIssuedEvent extends ConduitEvent {
     };
 }
 
+export interface AgentMessageChunkEvent extends ConduitEvent {
+    type: 'agent.message.chunk';
+    content: string;
+    chunk_id: string;
+}
+
+export interface ChairmanThinkingEvent extends ConduitEvent {
+    type: 'chairman.thinking';
+    content: string;
+    chunk_id: string;
+}
+
 export class EventLogger {
     private events: ConduitEvent[] = [];
 

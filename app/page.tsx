@@ -57,13 +57,14 @@ export default function LLMConduitDashboard() {
     events, records, keys, submitGoal, makeDecision,
     updateRole, deleteRole, addRecord, deleteRecord, updateKey, submitFeedback, testConnection,
     sessions, activeSessionId, setActiveSessionId, status, deleteSession, setStatus, grantPermission,
-    autoApprove, toggleAutoApprove
+    autoApprove, toggleAutoApprove, reloadAgents
   } = useConduit();
 
   const [inputMessage, setInputMessage] = useState("");
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'ops' | 'org' | 'knowledge' | 'keys'>('ops');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [streamingChunks, setStreamingChunks] = useState<Record<string, string>>({});
 
   // New entry states
   const [editingKey, setEditingKey] = useState<{ provider: string, key: string, base_url: string } | null>(null);
@@ -83,10 +84,22 @@ export default function LLMConduitDashboard() {
     return acc;
   }, [] as any[]);
 
+  // Accumulate streaming chunks
+  useEffect(() => {
+    const chunkEvents = events.filter(e => e.type === 'agent.message.chunk' || e.type === 'chairman.thinking');
+    const accumulated: Record<string, string> = {};
+    chunkEvents.forEach((e: any) => {
+      if (!accumulated[e.chunk_id]) accumulated[e.chunk_id] = '';
+      accumulated[e.chunk_id] += e.content;
+    });
+    setStreamingChunks(accumulated);
+  }, [events]);
+
   const timeline = events.filter(e => [
     'goal.submitted', 'agent.proposed', 'decision.made', 'human.feedback',
     'action.executed', 'chairman.window_opened',
-    'chairman.verdict_issued', 'permission.requested', 'agent.message'
+    'chairman.verdict_issued', 'permission.requested', 'agent.message',
+    'agent.message.chunk', 'chairman.thinking'
   ].includes(e.type) && (
       activeSessionId ? (e.run_id === activeSessionId) : (e.run_id?.startsWith('optimistic-new'))
     )).sort((a: any, b: any) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -277,44 +290,50 @@ export default function LLMConduitDashboard() {
                                     <div className="italic opacity-80">"{item.reasoning.summary}"</div>
                                   </div>
                                 ) :
-                                  item.type === 'permission.requested' ? (
-                                    <div className="border border-amber-500/20 bg-amber-500/5 p-4 rounded-xl">
-                                      <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest mb-2">
-                                        <Shield size={14} /> Permission Required
-                                      </div>
-                                      <div className="text-slate-300 mb-4">
-                                        The system is requesting access to
-                                        {item.action?.tool === 'read_context' ? ' read ' : ' execute '}
-                                        <span className="text-white font-mono bg-white/10 px-1 rounded mx-1">
-                                          {item.action?.tool === 'read_context' ? item.action.args.path : item.action.args.command}
-                                        </span>
-                                      </div>
-                                      <div className="flex gap-2">
-                                        <Button size="sm" onClick={() => grantPermission(item.action?.tool === 'read_context' ? item.action.args.path : (item.action?.key || `cmd:${item.action?.args?.command}`), 'GRANTED', 'session')}
-                                          className="h-7 text-[10px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border-none">
-                                          Allow Once
-                                        </Button>
-                                        <Button size="sm" onClick={() => grantPermission(item.action?.tool === 'read_context' ? item.action.args.path : (item.action?.key || `cmd:${item.action?.args?.command}`), 'GRANTED', 'always')}
-                                          className="h-7 text-[10px] bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white border-none">
-                                          Allow Always
-                                        </Button>
-                                        <Button size="sm" onClick={() => grantPermission(item.action?.tool === 'read_context' ? item.action.args.path : (item.action?.key || `cmd:${item.action?.args?.command}`), 'DENIED', 'always')}
-                                          className="h-7 text-[10px] bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white border-none">
-                                          Deny
-                                        </Button>
-                                      </div>
+                                  item.type === 'agent.message.chunk' || item.type === 'chairman.thinking' ? (
+                                    <div className="text-slate-300 font-mono text-sm whitespace-pre-wrap">
+                                      {streamingChunks[item.chunk_id] || item.content}
+                                      <span className="inline-block w-2 h-4 bg-indigo-500 ml-1 animate-pulse" />
                                     </div>
                                   ) :
-                                    item.type === 'agent.message' ? (
-                                      <div className="text-slate-400 italic">
-                                        "{item.content}"
+                                    item.type === 'permission.requested' ? (
+                                      <div className="border border-amber-500/20 bg-amber-500/5 p-4 rounded-xl">
+                                        <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest mb-2">
+                                          <Shield size={14} /> Permission Required
+                                        </div>
+                                        <div className="text-slate-300 mb-4">
+                                          The system is requesting access to
+                                          {item.action?.tool === 'read_context' ? ' read ' : ' execute '}
+                                          <span className="text-white font-mono bg-white/10 px-1 rounded mx-1">
+                                            {item.action?.tool === 'read_context' ? item.action.args.path : item.action.args.command}
+                                          </span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <Button size="sm" onClick={() => grantPermission(item.action?.tool === 'read_context' ? item.action.args.path : (item.action?.key || `cmd:${item.action?.args?.command}`), 'GRANTED', 'session')}
+                                            className="h-7 text-[10px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border-none">
+                                            Allow Once
+                                          </Button>
+                                          <Button size="sm" onClick={() => grantPermission(item.action?.tool === 'read_context' ? item.action.args.path : (item.action?.key || `cmd:${item.action?.args?.command}`), 'GRANTED', 'always')}
+                                            className="h-7 text-[10px] bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white border-none">
+                                            Allow Always
+                                          </Button>
+                                          <Button size="sm" onClick={() => grantPermission(item.action?.tool === 'read_context' ? item.action.args.path : (item.action?.key || `cmd:${item.action?.args?.command}`), 'DENIED', 'always')}
+                                            className="h-7 text-[10px] bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white border-none">
+                                            Deny
+                                          </Button>
+                                        </div>
                                       </div>
                                     ) :
-                                      item.type === 'human.feedback' ? (
-                                        <div className="text-slate-200">
-                                          {item.content}
+                                      item.type === 'agent.message' ? (
+                                        <div className="text-slate-400 italic">
+                                          "{item.content}"
                                         </div>
-                                      ) : (item.content || item.summary || `[${item.type}]`)}
+                                      ) :
+                                        item.type === 'human.feedback' ? (
+                                          <div className="text-slate-200">
+                                            {item.content}
+                                          </div>
+                                        ) : (item.content || item.summary || `[${item.type}]`)}
 
                             {/* Actions inline */}
                             {item.type === 'agent.proposed' && !timeline.some(e => e.type === 'decision.made' && e.proposal_id === item.proposal_id) && (
@@ -609,7 +628,13 @@ export default function LLMConduitDashboard() {
                               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">Model Engine</div>
                               <select
                                 value={role.model}
-                                onChange={(e) => updateRole({ ...role, model: e.target.value })}
+                                onChange={async (e) => {
+                                  await updateRole({ ...role, model: e.target.value });
+                                  const success = await reloadAgents();
+                                  if (success) {
+                                    console.log('Agents reloaded with new model:', e.target.value);
+                                  }
+                                }}
                                 className="w-full bg-black/50 border border-white/10 rounded-xl h-11 px-4 text-xs font-black text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all cursor-pointer appearance-none uppercase tracking-widest"
                               >
                                 {MODELS.map(m => <option key={m.id} value={m.id} className="bg-[#0a0b0e]">{m.name} ({m.provider})</option>)}

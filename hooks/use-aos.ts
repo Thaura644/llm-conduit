@@ -286,6 +286,22 @@ export function useConduit() {
         });
     };
 
+    const reloadAgents = async () => {
+        try {
+            const res = await fetch('/api/reload', {
+                method: 'POST',
+            });
+            const data = await res.json();
+            if (!data.success) {
+                console.error('Failed to reload agents:', data.error);
+            }
+            return data.success;
+        } catch (error) {
+            console.error('Error reloading agents:', error);
+            return false;
+        }
+    };
+
     return {
         events,
         records,
@@ -309,6 +325,7 @@ export function useConduit() {
         grantPermission,
         toggleAutoApprove,
         submitFeedback: submitFeedbackWithId,
-        setStatus
+        setStatus,
+        reloadAgents
     };
 }
