@@ -211,7 +211,7 @@ Download the latest installer from [GitHub Releases](https://github.com/Thaura64
 
 ```bash
 git clone https://github.com/Thaura644/llm-conduit.git
-cd aos
+cd llm-conduit
 npm install
 npm run electron:serve
 ```

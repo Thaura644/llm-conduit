@@ -1,6 +1,9 @@
 {
   "name": "aos",
   "version": "0.1.0",
+  "description": "LLM Conduit — Your local multi-model AI Execution Board. A sovereign, event-driven orchestration engine for autonomous agent collaboration.",
+  "author": "James Thaura Mweni (https://github.com/Thaura644/)",
+  "homepage": "http://linkedin.com/in/jamesthaura",
   "main": "electron/main.js",
   "private": true,
   "scripts": {

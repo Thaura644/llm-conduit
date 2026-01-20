@@ -32,7 +32,7 @@
     },
     "publish": {
         "provider": "github",
-        "owner": "adulam",
-        "repo": "aos"
+        "owner": "Thaura644",
+        "repo": "llm-conduit"
     }
 }

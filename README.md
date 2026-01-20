@@ -38,7 +38,7 @@ Download the latest installer for your platform from the [Releases](https://gith
 ```bash
 # Clone the repository
 git clone https://github.com/Thaura644/llm-conduit.git
-cd aos
+cd llm-conduit
 
 # Install dependencies
 npm install
@@ -219,6 +219,7 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 ## 🙏 Acknowledgments
 
+- **Author**: **[James Thaura Mweni](https://github.com/Thaura644/)** ([LinkedIn](http://linkedin.com/in/jamesthaura))
 - Built on Next.js, React, and Electron
 - Powered by OpenAI, Anthropic, Google, xAI, NVIDIA, and other leading AI providers
 - Inspired by the vision of sovereign agentic collaboration and **Andrej Karpathy's (@karpathy) [llm-council](https://github.com/karpathy/llm-council)** project.
