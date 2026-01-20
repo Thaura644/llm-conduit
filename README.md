@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/header.png" alt="LLM Conduit Header" width="100%">
+</p>
+
 # LLM Conduit
 
 **LLM Conduit is ...your local multi-model AI Execution Board.**
