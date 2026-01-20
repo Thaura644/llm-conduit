@@ -190,26 +190,54 @@ npm run dist
 - Document complex logic with comments
 - Use descriptive variable names
 
-## 🛠️ Building & Packaging
+## 🚀 Distribution Tracks
 
-### Build for Current Platform
+LLM Conduit can be run as a native desktop application (Tauri) or as a portable container (Docker).
 
+### 📊 Comparison Matrix
+
+| Feature | 🖥️ Tauri (Native) | 🐋 Docker (Container) |
+| :--- | :--- | :--- |
+| **User Experience** | Native window, Menubar, Tray icon | Browser-based UI (`localhost:3000`) |
+| **Reliability** | Depends on System OS & Drivers | **Maximum** (Isolated environment) |
+| **Setup Type** | Single File (`.deb` / `.exe`) | Containerized Orchestration |
+| **Performance** | Ultra-light (Rust-based) | Standard (Node.js runtime) |
+| **Best For** | Daily desktop use | Servers, Headless, & Debugging |
+
+---
+
+## 🛠️ Getting Started
+
+### Track A: Native Desktop (Tauri)
+**Recommended for the "premium" experience.**
+
+**1. Install Rust & Dependencies (Linux only)**
 ```bash
-npm run dist
+# System libraries
+sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev build-essential curl wget libssl-dev libgtk-3-dev
+# Rustup
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-Outputs will be in the `dist/` directory.
+**2. Build & Launch**
+```bash
+npm run tauri dev
+```
 
-### Cross-Platform Builds
+### Track B: Reliable Container (Docker)
+**Recommended if you want "zero-setup" and total reliability.**
 
-To build for all platforms, you'll need to run the build on the respective OS or use a CI/CD pipeline (see `.github/workflows/release.yml`).
+**1. Launch with Compose**
+```bash
+docker-compose up --build -d
+```
 
-### Creating a Release
+**2. Access the Dashboard**
+Open your browser to: `http://localhost:3000`
 
-1. Update `version` in `package.json`
-2. Commit changes: `git commit -am "chore: bump version to x.y.z"`
-3. Create and push a tag: `git tag vx.y.z && git push origin vx.y.z`
-4. GitHub Actions will automatically build and attach installers to the release
+---
+
+## 🐧 Linux Troubleshooting (Native Mode)
 
 ## ❓ Support
 
