@@ -8,7 +8,7 @@
 
 **A sovereign, event-driven orchestration engine for autonomous agent collaboration.**
 
-Built on Next.js with Electron, it provides a high-fidelity command center for managing organizational AI intelligence across multiple models and providers.
+Built on Next.js with **Tauri (Rust)** and **Docker**, it provides a high-fidelity command center for managing organizational AI intelligence across multiple models and providers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.1.0--alpha.1-blue)](https://github.com/Thaura644/llm-conduit/releases)
@@ -21,7 +21,7 @@ Built on Next.js with Electron, it provides a high-fidelity command center for m
 - **🔄 Autonomous Mode**: Enable the council to self-approve high-confidence missions without manual oversight
 - **🎯 Real-Time Telemetry**: Live "Neural Trace" streaming every agent's thought process as it happens
 - **📊 Persistent Memory**: SQLite-backed knowledge hub for unlimited context grounding
-- **🖥️ Native Desktop**: Cross-platform Electron app with secure IPC for file system and database access
+- **🖥️ Native Desktop**: Ultra-lightweight Tauri app (Rust-based) with secure Node.js sidecar
 
 ## 📦 Installation
 
@@ -55,15 +55,14 @@ npm run dev
 
 ### 1. Launch the Application
 
-**Development Mode:**
+**Option A: Native Desktop (Standard)**
 ```bash
-npm run electron:serve
+npm run tauri:dev
 ```
 
-**Production Build:**
+**Option B: Reliable Container (Zero-Setup)**
 ```bash
-npm run build
-npm run dist
+docker-compose up --build -d
 ```
 
 ### 2. Configure Your Team
@@ -106,13 +105,6 @@ This project follows **[Semantic Versioning (SemVer)](https://semver.org/)**. Gi
 - ✅ **MINOR updates** (`^0.1.0`): New features, backward-compatible — low risk
 - ⚠️ **MAJOR updates** (`1.0.0`): May contain breaking changes — review changelog
 
-### Auto-Updates
-
-Conduit uses `electron-builder`'s built-in auto-update mechanism. When a new version is released:
-1. You'll be notified in the app
-2. The update will download in the background
-3. Restart the app to apply
-
 ## 🗺️ Roadmap
 
 - **v0.2.0** - Enhanced rejection-triggered re-strategizing
@@ -121,33 +113,23 @@ Conduit uses `electron-builder`'s built-in auto-update mechanism. When a new ver
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────┐
-│         Electron Shell (main.js)         │
-│  ┌───────────────────────────────────┐  │
-│  │   Next.js Standalone Server       │  │
-│  │  ┌─────────────────────────────┐  │  │
-│  │  │  React UI (Command Center)  │  │  │
-│  │  │  - Operations Dashboard     │  │  │
-│  │  │  - Organization Manager     │  │  │
-│  │  │  - Knowledge Hub            │  │  │
-│  │  │  - Key Vault                │  │  │
-│  │  └─────────────────────────────┘  │  │
-│  │  ┌─────────────────────────────┐  │  │
-│  │  │  Conduit Engine (Node.js)   │  │  │
-│  │  │  - Event Loop               │  │  │
-│  │  │  - Agent Orchestration      │  │  │
-│  │  │  - Chairman Arbitration     │  │  │
-│  │  └─────────────────────────────┘  │  │
-│  │  ┌─────────────────────────────┐  │  │
-│  │  │  SQLite Database            │  │  │
-│  │  │  - Event Log                │  │  │
-│  │  │  - Team Roles               │  │  │
-│  │  │  - Knowledge Records        │  │  │
-│  │  │  - API Keys (encrypted)     │  │  │
-│  │  └─────────────────────────────┘  │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
+```mermaid
+graph TD
+    User([User]) <--> UI[Next.js Frontend]
+    
+    subgraph "Native Track (Tauri)"
+        TauriShell[Tauri Rust Shell]
+        UI -- HTTP/SSE --> Sidecar[Node.js Sidecar Engine]
+        Sidecar <--> DB[(SQLite DB)]
+        Sidecar <--> LLM[AI Providers]
+    end
+
+    subgraph "Docker Track"
+        NextStandalone[Next.js Standalone Server]
+        UI -- HTTP/SSE --> NextStandalone
+        NextStandalone <--> DB
+        NextStandalone <--> LLM
+    end
 ```
 
 ## 👥 Contributing
@@ -167,21 +149,23 @@ We welcome contributions! LLM Conduit is a community-driven project. To get star
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Development Setup
+### 🛠️ Development Setup
 
-```bash
-# Install dependencies
-npm install
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-# Run Next.js dev server + Electron
-npm run electron:serve
+2. **Launch Development Environment (Unified)**
+   This starts the Sidecar Engine (Port 3001) and Next.js (Port 3000) concurrently:
+   ```bash
+   npm run dev
+   ```
 
-# Build for production
-npm run build
-
-# Package for your current OS
-npm run dist
-```
+3. **Launch Tauri Shell (Native Mode)**
+   ```bash
+   npm run tauri:dev
+   ```
 
 ### Code Style
 
@@ -237,6 +221,32 @@ Open your browser to: `http://localhost:3000`
 
 ---
 
+## 🏗️ Production Builds & Cross-Platform
+
+LLM Conduit supports building for multiple platforms. While native host builds are recommended, we have configured **Local Cross-Compilation** to allow generating Windows installers directly from Linux.
+
+### 🐧 Local "Free" Track (Linux Host)
+We have configured your environment to build Linux and Windows installers without needing a second machine or cloud services.
+
+**1. Build for Linux (.deb / .rpm)**
+```bash
+npm run tauri:build
+```
+
+**2. Build for Windows (.exe)**
+```bash
+# Generate Windows sidecar then build
+npx pkg dist/sidecar-server.js -t node18-win-x64 -o src-tauri/binaries/sidecar-server-x86_64-pc-windows-gnu.exe
+npm run tauri build -- --target x86_64-pc-windows-gnu
+```
+
+### 🚀 Automated Distribution (Recommended)
+For large-scale releases, you can use **GitHub Actions**.
+- **Public Repos**: 100% Free.
+- **Private Repos**: Uses free minutes (2x multiplier for Windows runners).
+
+---
+
 ## 🐧 Linux Troubleshooting (Native Mode)
 
 ## ❓ Support
@@ -249,7 +259,11 @@ Open your browser to: `http://localhost:3000`
 
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
-## 🐧 Linux Troubleshooting (Native Mode)
+
+```bash
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev
+```
 
 ### WebKit2GTK Error
 If the app fails to launch with a "WebKit2GTK not found" error:

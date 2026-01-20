@@ -13,6 +13,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+# Restore dynamic API routes for standalone build
+RUN ln -s /app/server/api_deprecated /app/app/api_legacy
 # Ensure we build for standalone output
 ENV NEXT_OUTPUT=standalone
 RUN npm run build

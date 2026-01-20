@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ConduitEvent } from '@/lib/aos/events';
 
+const IS_TAURI = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+// In Tauri, use sidecar. In browser, use sidecar if in dev, else relative (Docker)
+const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE ||
+    (IS_TAURI ? 'http://localhost:3001' : (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : ''));
+
 export function useConduit() {
     const [events, setEvents] = useState<ConduitEvent[]>([]);
     const [records, setRecords] = useState<any[]>([]);
@@ -46,7 +52,7 @@ export function useConduit() {
         const connect = () => {
             if (eventSource) eventSource.close();
             console.log("Connecting to SSE...");
-            eventSource = new EventSource('/api/events');
+            eventSource = new EventSource(`${API_BASE}/events`);
 
             eventSource.onopen = () => {
                 console.log("SSE Connected");
@@ -95,19 +101,19 @@ export function useConduit() {
     }, []);
 
     const fetchRecords = useCallback(async () => {
-        const res = await fetch('/api/records');
+        const res = await fetch(`${API_BASE}/records`);
         const data = await res.json();
         setRecords(data);
     }, []);
 
     const fetchKeys = useCallback(async () => {
-        const res = await fetch('/api/keys');
+        const res = await fetch(`${API_BASE}/keys`);
         const data = await res.json();
         setKeys(data);
     }, []);
 
     const fetchSettings = useCallback(async () => {
-        const res = await fetch('/api/settings');
+        const res = await fetch(`${API_BASE}/settings`);
         const data = await res.json();
         setAutoApprove(data.autoApprove);
     }, []);
@@ -135,7 +141,7 @@ export function useConduit() {
         setEvents(prev => [...prev, optimisticEvent]);
 
         try {
-            const res = await fetch('/api/goal', {
+            const res = await fetch(`${API_BASE}/goal`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ goal }),
@@ -157,10 +163,10 @@ export function useConduit() {
     const makeDecision = useCallback(async (proposalId: string, decision: 'approved' | 'rejected', reason?: string) => {
         try {
             setStatus('running');
-            const res = await fetch('/api/decision', {
+            const res = await fetch(`${API_BASE}/decision`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ proposal_id: proposalId, decision, reason }),
+                body: JSON.stringify({ proposalId, decision, reason }),
             });
             if (!res.ok) throw new Error('Failed to make decision');
         } catch (error) {
@@ -169,7 +175,7 @@ export function useConduit() {
     }, []);
 
     const updateRole = async (role: any) => {
-        await fetch('/api/org', {
+        await fetch(`${API_BASE}/org`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(role)
@@ -178,7 +184,7 @@ export function useConduit() {
     };
 
     const deleteRole = async (role: string) => {
-        await fetch('/api/org', {
+        await fetch(`${API_BASE}/org`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ role })
@@ -186,7 +192,7 @@ export function useConduit() {
     };
 
     const addRecord = async (category: string, content: string) => {
-        await fetch('/api/records', {
+        await fetch(`${API_BASE}/records`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ category, content })
@@ -195,7 +201,7 @@ export function useConduit() {
     };
 
     const deleteRecord = async (id: string) => {
-        await fetch('/api/records', {
+        await fetch(`${API_BASE}/records`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id })
@@ -204,7 +210,7 @@ export function useConduit() {
     };
 
     const updateKey = async (provider: string, key: string, base_url?: string) => {
-        await fetch('/api/keys', {
+        await fetch(`${API_BASE}/keys`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ provider, key, base_url })
@@ -214,7 +220,7 @@ export function useConduit() {
 
     const testConnection = async (provider: string, model?: string) => {
         try {
-            const res = await fetch('/api/test-connection', {
+            const res = await fetch(`${API_BASE}/test-connection`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider, model }),
@@ -245,7 +251,7 @@ export function useConduit() {
         } as any]);
 
         try {
-            const res = await fetch('/api/feedback', {
+            const res = await fetch(`${API_BASE}/feedback`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ feedback, runId: targetRunId }),
@@ -259,7 +265,7 @@ export function useConduit() {
     }, []);
 
     const deleteSession = async (runId: string) => {
-        await fetch('/api/sessions', {
+        await fetch(`${API_BASE}/sessions`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ runId })
@@ -271,15 +277,15 @@ export function useConduit() {
     const toggleAutoApprove = async () => {
         const newValue = !autoApprove;
         setAutoApprove(newValue);
-        await fetch('/api/settings', {
+        await fetch(`${API_BASE}/settings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: 'auto_approve', value: newValue })
+            body: JSON.stringify({ autoApprove: newValue })
         });
     };
 
     const grantPermission = async (path: string, status: 'GRANTED' | 'DENIED', scope: 'session' | 'always') => {
-        await fetch('/api/permissions', {
+        await fetch(`${API_BASE}/permissions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path, access_level: 'READ', status, scope })
@@ -288,7 +294,7 @@ export function useConduit() {
 
     const reloadAgents = async () => {
         try {
-            const res = await fetch('/api/reload', {
+            const res = await fetch(`${API_BASE}/reload`, {
                 method: 'POST',
             });
             const data = await res.json();

@@ -1,16 +1,34 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+
+function getDbPath() {
+    // 1. Check environment variable
+    if (process.env.DATABASE_PATH) return process.env.DATABASE_PATH;
+
+    // 2. Default to home directory for consistency across all modes (Tauri, Dev, Docker)
+    const homeDir = os.homedir();
+    const configDir = path.join(homeDir, '.llm-conduit');
+    if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, { recursive: true });
+    }
+    return path.join(configDir, 'conduit.db');
+}
 
 export class ConduitDatabase {
     private db: Database.Database;
 
     constructor(projectRoot: string) {
-        const dbPath = path.join(projectRoot, 'records', 'conduit.db');
+        const dbPath = getDbPath();
         const dbDir = path.dirname(dbPath);
+
+        // Ensure directory exists
         if (!fs.existsSync(dbDir)) {
             fs.mkdirSync(dbDir, { recursive: true });
         }
+
+        console.log(`[Database] Using persistence at: ${dbPath}`);
         this.db = new Database(dbPath);
         this.init();
     }
