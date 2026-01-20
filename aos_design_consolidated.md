@@ -2,7 +2,7 @@
 
 > **One-line:** A local, inspectable, role-based agent team IDE: think `llm-council` for *organizational governance* — agents with authority, tools, and auditable decisions.
 
-> **Desktop Evolution:** Now packaged as a native cross-platform application with automated release pipeline via Electron.
+> **Desktop Evolution:** Now packaged as a native lightweight application via **Tauri** (Rust), with a highly reliable **Docker** distribution for server/headless environments.
 
 ---
 
@@ -27,60 +27,46 @@ They serve different purposes and should never be merged.
 
 ---
 
-## 2 — Desktop Application Architecture
+## 2 — Distribution & Shell Architecture
 
-### Hybrid Stack: Next.js + Electron
+### Dual-Track Strategy: Tauri + Docker
 
-The application runs as a **standalone Next.js server** embedded within an **Electron shell**, providing:
+The application prioritizes performance and reliability through two main distribution tracks:
 
-- **Native Desktop Experience**: Window management, system tray, notifications
-- **Secure IPC Bridge**: Contextual isolation with preload scripts for file system and database access
-- **Portable Deployment**: Single executable with all dependencies bundled
-- **Auto-Updates**: GitHub-based release distribution with automatic update checks
+#### Track A: Tauri (Native Desktop)
+- **Rust Backend**: Replaces Node.js for the system shell, providing superior safety and minimal binary size (~10-20MB).
+- **Static Frontend**: Next.js is configured for **Static Site Generation (SSG)**, allowing it to be bundled directly into the binary.
+- **Sidecar Workflow**: The core Node.js orchestration engine runs as a managed **Sidecar process**, isolated from the shell.
+
+#### Track B: Docker (Reliable Container)
+- **Isolated Environment**: Packages the entire runtime (Node.js, SQLite binaries, Python) into a single container.
+- **Zero-Setup**: Resolves "blank screen" or driver issues by running in the user's local browser via port `3000`.
+- **Server-Ready**: Ideal for running LLM Conduit on remote servers or as a headless background service.
 
 ### File Structure
 
 ```
 aos/
-├── electron/
-│   ├── main.js          # Application entry point, window management, Next.js server lifecycle
-│   └── preload.js       # Secure IPC bridge for renderer→main communication
+├── src-tauri/           # Tauri (Rust) backend, configuration, and build assets
 ├── app/                 # Next.js application (UI & API routes)
-│   ├── page.tsx         # Operations Command Center
-│   ├── api/             # Server-side endpoints
-│   └── ...
-├── lib/aos/             # Core engine
+├── lib/aos/             # Core engine (The "Brain")
 │   ├── engine.ts        # Event orchestration, agent lifecycle
 │   ├── chairman.ts      # Governance arbitration
 │   ├── agents.ts        # LLM agent wrappers
 │   └── db.ts            # SQLite persistence layer
-├── .next/standalone/    # Built Next.js server (generated on build)
-├── electron-builder.json # Cross-platform packaging config
-└── .github/workflows/release.yml # Automated CI/CD pipeline
+├── Dockerfile           # Multi-stage container build
+├── docker-compose.yml   # Easy-launch orchestration
+├── next.config.ts       # Configured for SSG/Export
+└── README.md            # Track comparison and setup guide
 ```
 
-### Build & Release Pipeline
-
-1. **`npm run build`**: Compiles Next.js to a standalone server bundle
-2. **`npm run dist`**: Uses `electron-builder` to package the app for the current OS
-3. **GitHub Actions**: On version tag push (`v*`), automatically builds installers for:
-   - Windows: `.exe` (NSIS installer)
-   - macOS: `.dmg` (disk image)
-   - Linux: `.AppImage` (portable executable)
-
-### Versioning Strategy
+### versioning Strategy
 
 We follow **Semantic Versioning** (`MAJOR.MINOR.PATCH`):
 
-- **PATCH** (`0.1.1`): Bug fixes, performance improvements
-- **MINOR** (`0.2.0`): New features, backward-compatible changes
-- **MAJOR** (`1.0.0`): Breaking API changes, architecture overhauls
-
-**Release Workflow:**
-1. Update `version` in `package.json`
-2. Commit: `git commit -am "chore: bump to vX.Y.Z"`
-3. Tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
-4. GitHub Actions builds and attaches installers to the release
+- **PATCH** (`0.1.1`): Bug fixes, internal optimizations
+- **MINOR** (`0.2.0`): New agent capabilities, UI enhancements
+- **MAJOR** (`1.0.0`): Production stable release
 
 ---
 
@@ -179,22 +165,15 @@ When a user clicks **Reject**, the engine:
 All sensitive data is excluded from version control via `.gitignore`:
 - `records/conduit.db` (SQLite database with API keys, event log)
 - `.env*` files
-- Electron build artifacts (`.exe`, `.dmg`, `.AppImage`)
+- Build artifacts: `src-tauri/target`, `dist/`, `.next/`
 
-### API Key Storage
+### Persistence Layer
 
-Keys are stored in the SQLite database (`conduit.db`) within the user's `userData` directory:
-- **Windows**: `%APPDATA%/conduit`
-- **macOS**: `~/Library/Application Support/conduit`
-- **Linux**: `~/.config/conduit`
+Data is persisted in the SQLite database (`conduit.db`):
+- **Native (Tauri)**: Stored in the standard system app data directory (`~/.local/share/conduit` on Linux).
+- **Container (Docker)**: Stored in a Docker volume (mapped to the `/app/data` directory).
 
-Keys are **not encrypted** in this version—future releases will add AES-256 encryption.
-
-### Network Security
-
-- All LLM API calls use HTTPS
-- No telemetry or analytics sent to external servers
-- The application operates entirely locally, with no cloud dependencies
+Keys are **not encrypted** in the alpha version—future releases will add AES-256 encryption.
 
 ---
 
@@ -202,18 +181,18 @@ Keys are **not encrypted** in this version—future releases will add AES-256 en
 
 ### For End Users
 
-Download the latest installer from [GitHub Releases](https://github.com/Thaura644/llm-conduit/releases):
-- **Windows**: `Conduit-Setup-{version}.exe`
-- **macOS**: `Conduit-{version}.dmg`
-- **Linux**: `Conduit-{version}.AppImage`
+Download the latest installer or pull the image:
+- **Track A (Native)**: Install the `.deb` or `.exe` from [GitHub Releases](https://github.com/Thaura644/llm-conduit/releases).
+- **Track B (Docker)**: Run `docker-compose up --build -d` using the repository source.
 
-### For Developers
+### For Developers (Tauri Track)
 
 ```bash
 git clone https://github.com/Thaura644/llm-conduit.git
 cd llm-conduit
+# Install Rust first!
 npm install
-npm run electron:serve
+npm run tauri dev
 ```
 
 ---
