@@ -26,9 +26,24 @@
         "category": "public.app-category.developer-tools"
     },
     "linux": {
-        "target": "AppImage",
+        "target": [
+            "AppImage",
+            "deb"
+        ],
         "icon": "public/icon.png",
-        "category": "Development"
+        "category": "Development",
+        "executableName": "conduit"
+    },
+    "deb": {
+        "depends": [
+            "libfuse2",
+            "libnotify4",
+            "libnss3",
+            "libatk1.0-0",
+            "libatk-bridge2.0-0",
+            "libc6",
+            "libgtk-3-0"
+        ]
     },
     "publish": {
         "provider": "github",

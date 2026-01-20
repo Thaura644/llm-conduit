@@ -7,7 +7,7 @@
 Built on Next.js with Electron, it provides a high-fidelity command center for managing organizational AI intelligence across multiple models and providers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/Thaura644/llm-conduit/releases)
+[![Version](https://img.shields.io/badge/version-0.1.0--alpha.1-blue)](https://github.com/Thaura644/llm-conduit/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](https://github.com/Thaura644/llm-conduit/releases)
 
 ## ✨ Key Features
@@ -216,6 +216,25 @@ To build for all platforms, you'll need to run the build on the respective OS or
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
+
+## 🐧 Linux Troubleshooting
+
+### 1. FUSE 2 Requirement (for AppImage)
+If you get a `libfuse.so.2` error version on modern Linux (Ubuntu 22.04+):
+```bash
+sudo apt update
+sudo apt install libfuse2
+```
+
+### 2. Sandbox Error
+If the app crashes with a `SUID sandbox` error:
+```bash
+# Option A: Install the native .deb package (Recommended)
+# The .deb package handles permissions and dependencies automatically.
+
+# Option B: Run with --no-sandbox
+./Conduit-0.1.0.AppImage --no-sandbox
+```
 
 ## 🙏 Acknowledgments
 
