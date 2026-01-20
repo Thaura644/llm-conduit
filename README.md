@@ -249,29 +249,19 @@ Open your browser to: `http://localhost:3000`
 
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
-## 🐧 Linux Troubleshooting
+## 🐧 Linux Troubleshooting (Native Mode)
 
-### 1. FUSE 2 Requirement (for AppImage)
-If you get a `libfuse.so.2` error version on modern Linux (Ubuntu 22.04+):
+### WebKit2GTK Error
+If the app fails to launch with a "WebKit2GTK not found" error:
 ```bash
 sudo apt update
-sudo apt install libfuse2
-```
-
-### 2. Sandbox Error
-If the app crashes with a `SUID sandbox` error:
-```bash
-# Option A: Install the native .deb package (Recommended)
-# The .deb package handles permissions and dependencies automatically.
-
-# Option B: Run with --no-sandbox
-./Conduit-0.1.0.AppImage --no-sandbox
+sudo apt install libwebkit2gtk-4.1-dev
 ```
 
 ## 🙏 Acknowledgments
 
 - **Author**: **[James Thaura Mweni](https://github.com/Thaura644/)** ([LinkedIn](http://linkedin.com/in/jamesthaura))
-- Built on Next.js, React, and Electron
+- Built on Next.js, React, and Tauri (Rust)
 - Powered by OpenAI, Anthropic, Google, xAI, NVIDIA, and other leading AI providers
 - Inspired by the vision of sovereign agentic collaboration and **Andrej Karpathy's (@karpathy) [llm-council](https://github.com/karpathy/llm-council)** project.
 
