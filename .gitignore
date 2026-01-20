@@ -19,6 +19,7 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -39,3 +40,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Secrets & Sensitive Data
+records/conduit.db
+records/conduit.db-shm
+records/conduit.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# API Keys (if stored locally)
+.aos_init/
+orgfile.yaml
+
+# Electron build artifacts
+/dist_electron
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm

@@ -1,0 +1,38 @@
+{
+    "appId": "com.aos.conduit",
+    "productName": "Conduit",
+    "directories": {
+        "output": "dist"
+    },
+    "files": [
+        "package.json",
+        "electron/**/*",
+        ".next/standalone/**/*",
+        "public/**/*"
+    ],
+    "extraResources": [
+        {
+            "from": ".next/standalone",
+            "to": "app/.next/standalone"
+        }
+    ],
+    "win": {
+        "target": "nsis",
+        "icon": "public/icon.ico"
+    },
+    "mac": {
+        "target": "dmg",
+        "icon": "public/icon.icns",
+        "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+        "target": "AppImage",
+        "icon": "public/icon.png",
+        "category": "Development"
+    },
+    "publish": {
+        "provider": "github",
+        "owner": "adulam",
+        "repo": "aos"
+    }
+}

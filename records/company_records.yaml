@@ -1,0 +1,12 @@
+- id: r1
+  category: culture
+  content: "aos Core Value: Action over Analysis. We prioritize building and testing over endless planning."
+  updated_at: "2026-01-19T14:40:00Z"
+- id: r2
+  category: policy
+  content: "Governance Policy: The Human Chairman has absolute veto and override power. No autonomous decision is final until the window closes without Chairman intervention."
+  updated_at: "2026-01-19T14:40:00Z"
+- id: r3
+  category: technical
+  content: "Stack: Next.js + Tailwind + OpenAI/OpenRouter. We build local-first applications with real-time event streaming."
+  updated_at: "2026-01-19T14:40:00Z"
