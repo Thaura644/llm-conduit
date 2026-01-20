@@ -1,6 +1,10 @@
+# LLM Conduit
+
+**LLM Conduit is ...your local multi-model AI Execution Board.**
+
 **A sovereign, event-driven orchestration engine for autonomous agent collaboration.**
 
-LLM Conduit is ...your local multi-model AI Execution Board. Built on Next.js with Electron, it provides a high-fidelity command center for managing organizational AI intelligence across multiple models and providers.
+Built on Next.js with Electron, it provides a high-fidelity command center for managing organizational AI intelligence across multiple models and providers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/Thaura644/llm-conduit/releases)
