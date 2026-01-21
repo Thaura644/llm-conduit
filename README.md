@@ -11,14 +11,15 @@
 Built on Next.js with **Tauri (Rust)** and **Docker**, it provides a high-fidelity command center for managing organizational AI intelligence across multiple models and providers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.0--alpha.1-blue)](https://github.com/Thaura644/llm-conduit/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0--alpha.1-blue)](https://github.com/Thaura644/llm-conduit/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](https://github.com/Thaura644/llm-conduit/releases)
 
 ## ✨ Key Features
 
-- **⚡ Multi-Provider Key Vault**: Direct API integration with OpenAI, Anthropic, Google (Gemini), xAI (Grok), NVIDIA, and more ..via openrouter as well
+- **⚡ Multi-Provider Key Vault**: Direct API integration with OpenAI, Anthropic, Google (Gemini), xAI (Grok), NVIDIA, Brave Search, and more ..via openrouter as well
+- **🔍 Real-Time Web Search**: Brave Search API integration for agents to gather current information, competitive intelligence, and fact verification
 - **👔 Chairman Governance**: Automated arbitration between conflicting proposals with organizational rule enforcement
-- **🔄 Autonomous Mode**: Enable the council to self-approve high-confidence missions without manual oversight
+- **🔄 Autonomous Mode**: Enable council to self-approve high-confidence missions without manual oversight
 - **🎯 Real-Time Telemetry**: Live "Neural Trace" streaming every agent's thought process as it happens
 - **📊 Persistent Memory**: SQLite-backed knowledge hub for unlimited context grounding
 - **🖥️ Native Desktop**: Ultra-lightweight Tauri app (Rust-based) with secure Node.js sidecar
@@ -74,8 +75,16 @@ docker-compose up --build -d
 ### 3. Provision API Keys
 
 1. Open the **Key Vault** tab
-2. Add direct API keys for your chosen providers
+2. Add direct API keys for your chosen providers:
+   - **LLM Providers**: OpenAI, Anthropic, Google, xAI, etc.
+   - **Web Search**: Brave Search API key (starts with "BSA" - get at https://brave.com/search/api/)
 3. Test connectivity using the built-in health check
+
+> **💡 Brave Search Integration**: With Brave API key configured, your agents can now search the web in real-time to:
+> - Verify facts and current events
+> - Research competitive intelligence  
+> - Get latest market trends and news
+> - Find up-to-date documentation and best practices
 
 ### 4. Issue Your First Mission
 
@@ -107,9 +116,9 @@ This project follows **[Semantic Versioning (SemVer)](https://semver.org/)**. Gi
 
 ## 🗺️ Roadmap
 
-- **v0.2.0** - Enhanced rejection-triggered re-strategizing
-- **v0.3.0** - Multi-session parallel missions
-- **v1.0.0** - Stable API, custom agent plugin system
+- **v0.2.0** - Enhanced rejection-triggered re-strategizing, expanded web search capabilities
+- **v0.3.0** - Multi-session parallel missions, search result caching
+- **v1.0.0** - Stable API, custom agent plugin system, advanced search filters
 
 ## 🏗️ Architecture
 

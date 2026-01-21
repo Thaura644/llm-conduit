@@ -149,6 +149,11 @@ export class ConduitDatabase {
         return this.db.prepare('SELECT * FROM api_keys WHERE provider = ?').get(provider);
     }
 
+    hasApiKey(provider: string): boolean {
+        const result = this.db.prepare('SELECT key FROM api_keys WHERE provider = ?').get(provider) as any;
+        return !!result?.key;
+    }
+
     // Security Permissions
     getPermission(pathStr: string) {
         return this.db.prepare('SELECT * FROM security_permissions WHERE path = ?').get(pathStr);

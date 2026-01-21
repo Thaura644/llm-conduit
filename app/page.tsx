@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Check, X, Play, RotateCcw, Send, Settings, Terminal,
   Activity, BookOpen, Users, Cpu, Shield, Plus, Trash2,
-  ChevronRight, Brain, Zap, Globe, Command, Home, Key, ExternalLink, Square, PanelLeftClose
+  ChevronRight, Brain, Zap, Globe, Command, Home, Key, ExternalLink, Square, PanelLeftClose, Search
 } from "lucide-react";
 import { useConduit } from "@/hooks/use-aos";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,6 +50,7 @@ const PROVIDERS = [
   { id: 'meta', name: 'Meta (Llama)', icon: <Activity size={14} />, color: 'sky' },
   { id: 'minimax', name: 'Minimax', icon: <Zap size={14} />, color: 'rose' },
   { id: 'blackbox', name: 'Blackbox', icon: <Terminal size={14} />, color: 'indigo' },
+  { id: 'brave', name: 'Brave Search', icon: <Search size={14} />, color: 'red' },
 ];
 
 export default function LLMConduitDashboard() {
@@ -851,12 +852,23 @@ export default function LLMConduitDashboard() {
                               variant="ghost"
                               className="h-11 px-6 rounded-xl border border-white/10 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest"
                               onClick={() => {
-                                const k = prompt(`Enter Base URL for ${provider.name} (optional):`);
-                                const key = prompt(`Enter API Key for ${provider.name}:`);
-                                if (key) updateKey(provider.id, key, k || undefined);
+                                const k = provider.id === 'brave' ? undefined : prompt(`Enter Base URL for ${provider.name} (optional):`);
+                                const key = prompt(
+                                  provider.id === 'brave' 
+                                    ? `Enter Brave Search API Key (starts with "BSA"):\n\nGet your key at: https://brave.com/search/api/`
+                                    : `Enter API Key for ${provider.name}:`
+                                );
+                                if (key) {
+                                  // Validate Brave API key format
+                                  if (provider.id === 'brave' && !key.startsWith('BSA')) {
+                                    alert('Invalid Brave API key format. Brave Search API keys must start with "BSA"');
+                                    return;
+                                  }
+                                  updateKey(provider.id, key, k || undefined);
+                                }
                               }}
                             >
-                              SET
+                              {provider.id === 'brave' ? 'GET KEY' : 'SET'}
                             </Button>
                           </div>
                         </div>

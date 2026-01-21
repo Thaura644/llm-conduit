@@ -89,6 +89,12 @@ export class ConduitEngine {
         const roles = this.db.getRoles();
         this.agents = [];
 
+        // Initialize Brave API key if available
+        const braveKey = this.db.getApiKey('brave') as ConduitApiKey | undefined;
+        if (braveKey) {
+            this.toolExecutor.setBraveApiKey(braveKey.key);
+        }
+
         for (const roleConfig of roles) {
             const credentials = this.getAgentCredentials(roleConfig.model);
             if (credentials) {

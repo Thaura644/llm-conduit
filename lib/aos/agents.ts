@@ -51,9 +51,9 @@ export class Agent {
                 timestamp: Date.now()
             });
 
-            const systemPrompt = `${this.config.prompt}\n\nCOMPANY KNOWLEDGE:\n${knowledge}\n\nYou must respond with a JSON proposal following this format:\n{
+            const systemPrompt = `${this.config.prompt}\n\nCOMPANY KNOWLEDGE:\n${knowledge}\n\nAVAILABLE TOOLS:\n- read_file: Read file contents from local filesystem\n- write_file: Write content to a file\n- run_shell: Execute shell commands (requires permission)\n- brave_web_search: Search the web using Brave Search API for current information, news, research, or to verify facts\n\nWeb Search Guidelines:\n- Use brave_web_search when you need current information beyond your knowledge cutoff\n- Use it to verify facts, get latest news, research trends, or gather competitive intelligence\n- Cite search results in your justification when they support your proposal\n- Format search queries to be specific and targeted\n\nYou must respond with a JSON proposal following this format:\n{
       "summary": "Short summary",
-      "justification": "Why this is needed",
+      "justification": "Why this is needed (include search result citations if used)",
       "risk": "low|medium|high",
       "confidence": 0.0-1.0,
       "requested_actions": [ { "tool": "tool_name", "args": {} } ]

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Users, Zap, BookOpen, MessageSquare, LayoutDashboard, Terminal, Activity, ChevronRight } from "lucide-react";
+import { Send, Users, Zap, BookOpen, MessageSquare, LayoutDashboard, Terminal, Activity, ChevronRight, Search } from "lucide-react";
 import { useConduit } from "@/hooks/use-aos";
 import Link from 'next/link';
 
@@ -108,6 +108,32 @@ export default function TeamConsole() {
                                                         <div className="font-medium text-slate-200">"{msg.reasoning.summary}"</div>
                                                         <div className="text-[10px] text-slate-600 italic uppercase tracking-wider">Logic: {msg.reasoning.applied_rules.join(' • ')}</div>
                                                     </div>
+                                                ) : msg.type === 'action.executed' && msg.tool === 'brave_web_search' ? (
+                                                    <div className="space-y-3">
+                                                        <div className="font-black text-[10px] uppercase tracking-[0.25em] text-indigo-500 flex items-center gap-2">
+                                                            <Search size={10} />
+                                                            Web Search Results
+                                                        </div>
+                                                        <div className="font-medium text-slate-300">Query: "{msg.result?.query}"</div>
+                                                        {msg.result?.results && msg.result.results.length > 0 ? (
+                                                            <div className="space-y-2">
+                                                                {msg.result.results.slice(0, 3).map((result: any, i: number) => (
+                                                                    <div key={i} className="p-3 bg-white/3 rounded-xl border border-white/5">
+                                                                        <div className="text-xs font-bold text-indigo-400 mb-1">{result.title}</div>
+                                                                        <div className="text-[10px] text-slate-500 mb-2">{result.description}</div>
+                                                                        <div className="text-[9px] text-slate-600 font-mono truncate">{result.url}</div>
+                                                                    </div>
+                                                                ))}
+                                                                {msg.result.results.length > 3 && (
+                                                                    <div className="text-[10px] text-slate-600 italic">
+                                                                        +{msg.result.results.length - 3} more results
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-xs text-slate-500">No results found</div>
+                                                        )}
+                                                    </div>
                                                 ) : (msg.content || msg.summary)}
                                         </div>
                                     </div>
@@ -142,6 +168,8 @@ export default function TeamConsole() {
                                 "Risk Vector Analysis",
                                 "Strategic Summary",
                                 "Deployment Protocol",
+                                "Market Research",
+                                "Competitive Analysis",
                             ].map((template, i) => (
                                 <Button
                                     key={i}
@@ -158,10 +186,21 @@ export default function TeamConsole() {
                         <div className="mt-16 p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10">
                             <div className="flex items-center gap-2 mb-4">
                                 <Activity size={12} className="text-indigo-500" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Latency Monitor</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">System Status</span>
                             </div>
-                            <div className="text-2xl font-black text-slate-300">42ms</div>
-                            <div className="text-[10px] text-slate-600 mt-1 uppercase font-bold">Encrypted via RSA-4096</div>
+                            <div className="space-y-3">
+                                <div>
+                                    <div className="text-2xl font-black text-slate-300">42ms</div>
+                                    <div className="text-[10px] text-slate-600 uppercase font-bold">Latency Monitor</div>
+                                </div>
+                                <div className="pt-2 border-t border-white/5">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Search Engine</span>
+                                    </div>
+                                    <div className="text-xs font-mono text-slate-400">Brave MCP: ONLINE</div>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
